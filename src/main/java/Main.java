@@ -1,160 +1,275 @@
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
-import java.util.List;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Main {
 
-    private static AccesoBD instancia;
-    private static Alumnos alumnos;
-    private static Profesores profesores;
-    private static Matricula matricula;
-    private static List<Matricula> listaMatriculas;
-    private static Scanner sc = new Scanner(System.in);
-
-    /*
-    private static EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("default");
-    private static EntityManager entity = entityManagerFactory.createEntityManager();
-*/
+    private static BD bd = new BD();
+    private static final Scanner sc = new Scanner(System.in);
 
     public static void main(String[] args) throws Exception {
-        instancia=new AccesoBD();
+        //Para que no aprezca el texto rojo
+        Logger.getLogger("org.hibernate").setLevel(Level.OFF);
+        bd = new BD();
 
-        int opc = 0;
+        int opc1;
+        int opc2 = 0;
+        String tabla = "";
 
 
-
-        while (opc != 7){
+        do {
             System.out.println("""
-                    Indique que desea hacer:
-                    [1] Insertar alumno
-                    [2] Insertar profesor
-                    [3] Insertar matricula
-                    [4] Buscar
-                    [5] Actualizar
-                    [6] Eliminar
-                    [7] Salir
+                    Indique que seccion desea ver:
+                    [1] Alumnos
+                    [2] Profesores
+                    [3] Matriculas
+                    [4] Salir
                     """);
 
-            opc = sc.nextInt();
-            switch (opc){
+            opc1 = sc.nextInt();
+            switch (opc1) {
                 case 1:
-                    insertarAlumnos();
+                    tabla = "Alumnos";
                     break;
                 case 2:
-                    insertarProfesor();
+                    tabla = "Profesores";
                     break;
                 case 3:
-                    insertarMatricula();
+                    tabla = "Matricula";
                     break;
                 case 4:
-                    buscar();
-                    break;
-                case 5:
-                    break;
-                case 6:
-                    break;
-                case 7:
                     System.out.println("Bye bye~");
                     break;
+                default:
+                    System.out.println("Opcion no valida :[");
             }
+
+            while (opc2 != 5) {
+                System.out.println("""
+                        Indique que desea hacer:
+                        [1] Insertar
+                        [2] Listar
+                        [3] Actualizar
+                        [4] Borrar
+                        [5] Salir
+                            """);
+
+                opc2 = sc.nextInt();
+                switch (opc2) {
+                    case 1:
+                        menuInsertar(opc1);
+                        break;
+                    case 2:
+                        menuListar(opc1);
+                        break;
+                    case 3:
+                        menuActualizar(opc1);
+                        break;
+                    case 4:
+                        menuBorrar(opc1);
+                        break;
+                    case 5:
+                        System.out.println("Bye bye~");
+                        break;
+                    default:
+                        System.out.println("Opcion no valida :[");
+                }
+            }
+
+
+        } while (opc1 != 4);
+    }
+
+    //Metodos insertar
+
+    private static void menuInsertar(int tabla) throws Exception {
+        switch (tabla) {
+            case 1 -> insertarAlumnos();
+            case 2 -> insertarProfesor();
+            case 3 -> insertarMatricula();
+        }
+    }
+
+    private static void insertarAlumnos() {
+        int id;
+        String nombre, apellidos, fechaNac;
+        System.out.println("Indique el id del alumno: ");
+        id = sc.nextInt();
+        System.out.println("Indique el nombre del alumno: ");
+        nombre = sc.next();
+        System.out.println("Indique los apellidos del alumno: ");
+        apellidos = sc.next();
+        System.out.println("Indique la fecha de nacimiento del alumno: ");
+        fechaNac = sc.next();
+
+        bd.insertarAlumno(new Alumnos(id, nombre, apellidos, fechaNac));
+    }
+
+    private static void insertarProfesor() {
+
+        int id, antiguedad;
+        String nombre, apellidos, fechaNac;
+        System.out.println("Indique el id del profesor: ");
+        id = sc.nextInt();
+        System.out.println("Indique el nombre del profesor: ");
+        nombre = sc.next();
+        System.out.println("Indique los apellidos del profesor: ");
+        apellidos = sc.next();
+        System.out.println("Indique la fecha de nacimiento del profesor: ");
+        fechaNac = sc.next();
+        System.out.println("Indique la antiguedad del profesor: ");
+        antiguedad = sc.nextInt();
+
+        bd.insertarProfesores(new Profesores(id, nombre, apellidos, fechaNac, antiguedad));
+    }
+
+    private static void insertarMatricula() {
+
+        int id, curso, idAlumno, idProfe;
+        String asignatura;
+        System.out.println("Indique el id de matricula: ");
+        id = sc.nextInt();
+        System.out.println("Indique la asignatura del alumno: ");
+        asignatura = sc.next();
+        System.out.println("Indique el curso del alumno");
+        curso = sc.nextInt();
+        System.out.println("Indique el id del alumno: ");
+        idAlumno = sc.nextInt();
+        Alumnos alumnos = bd.leerAlumnos(idAlumno);
+        System.out.println("Indique el id del profesor: ");
+        idProfe = sc.nextInt();
+        Profesores profesores = bd.leerProfesores(idProfe);
+
+        Matricula matricula = new Matricula(id, asignatura, curso, alumnos, profesores);
+        bd.insertarMatricula(matricula);
+    }
+
+    //Metodos listar
+
+    private static void menuListar(int tabla) {
+        switch (tabla) {
+            case 1 -> bd.listaAlumnos();
+            case 2 -> bd.listaProfes();
+            case 3 -> bd.listaMatricula();
+        }
+    }
+
+    //Metodos actualizar
+
+    private static void menuActualizar(int tabla) throws Exception {
+        switch (tabla) {
+            case 1 -> actualizarAlumnos();
+            case 2 -> actualizarProfesor();
+            case 3 -> actualizarMatricula();
+        }
+    }
+
+    private static void actualizarAlumnos() throws Exception {
+        bd.abrir();
+        System.out.println("Introduzca el id del alumno que desea modificar: ");
+        Alumnos alumno = bd.leerAlumnos(sc.nextInt());
+
+        if (alumno != null) {
+            System.out.println("Introduzca el nombre del alumno");
+            alumno.setNombre(sc.next());
+            System.out.println("Introduzca el apellido del alumno: ");
+            alumno.setApellidos(sc.next());
+            System.out.println("Indique la fecha de nacimiento del alumno: ");
+            alumno.setFechaNac(sc.next());
+            bd.cerrar();
+
+            bd.insertarAlumno(alumno);
+        } else {
+            System.out.println("El id del alumno no existe");
         }
 
 
+    }
+
+    private static void actualizarProfesor() throws Exception {
+        bd.abrir();
+        System.out.println("Introduzca el id del profesor que desea modificar: ");
+        Profesores profesores = bd.leerProfesores(sc.nextInt());
+
+        if (profesores != null) {
+            System.out.println("Introduzca el nombre del profesor");
+            profesores.setNombre(sc.next());
+            System.out.println("Introduzca el apellido del profesor: ");
+            profesores.setApellidos(sc.next());
+            System.out.println("Indique la fecha de nacimiento del profesor: ");
+            profesores.setFechaNac(sc.next());
+            System.out.println("Indique la antiguedad del profesor: ");
+            profesores.setAntiguedad(sc.nextInt());
+
+            bd.cerrar();
+            bd.insertarProfesores(profesores);
+        } else {
+            System.out.println("El id del profesor no existe");
+        }
 
     }
 
-    private static void guardar(Object cosa) throws Exception {
-        instancia.abrir();
-        int id = (int) instancia.guardar(cosa);
-        System.out.println(id);
-        instancia.cerrar();
+    private static void actualizarMatricula() throws Exception {
+        bd.abrir();
+        System.out.println("Introduzca el id de la matricula que desea modificar: ");
+        Matricula matricula = bd.leerMatriculas(sc.nextInt());
+        Alumnos alumnos = bd.leerAlumnos(sc.nextInt());
+        Profesores profesores = bd.leerProfesores(sc.nextInt());
+
+        if (matricula != null) {
+            System.out.println("Introduzca la asignatura");
+            matricula.setAsignatura(sc.next());
+            System.out.println("Introduzca el curso");
+            matricula.setCurso(sc.nextInt());
+            System.out.println("Introduzca el id del alumno: ");
+            matricula.setAlumnos(alumnos);
+            System.out.println("Indique el id del profesor: ");
+            matricula.setProfesores(profesores);
+
+            bd.cerrar();
+            bd.insertarMatricula(matricula);
+        } else {
+            System.out.println("El id de la matricula no existe");
+        }
     }
 
-    private static void insertarAlumnos() throws Exception{
-        alumnos = new Alumnos();
-        System.out.println("Indique el id del alumno: ");
-        alumnos.setIdAlum(sc.nextInt());
-        System.out.println("Indique el nombre del alumno: ");
-        alumnos.setNombre(sc.next());
-        System.out.println("Indique los apellidos del alumno: ");
-        alumnos.setApellidos(sc.next());
-        System.out.println("Indique la fecha de nacimiento del alumno: ");
-        alumnos.setFechaNac(sc.next());
+    //Metodos borrar
 
-        alumnos.setMatriculas(listaMatriculas);
-        guardar(alumnos);
-
+    private static void menuBorrar(int tabla) throws Exception {
+        switch (tabla) {
+            case 1 -> borrarAlumnos();
+            case 2 -> borrarProfesores();
+            case 3 -> borrarMatricula();
+        }
     }
 
-    private static void insertarProfesor() throws Exception{
-
-        profesores = new Profesores();
-        System.out.println("Indique el id del profesor: ");
-        profesores.setIdProfesor(sc.nextInt());
-        System.out.println("Indique el nombre del profesor: ");
-        profesores.setNombre(sc.next());
-        System.out.println("Indique los apellidos del profesor: ");
-        profesores.setApellidos(sc.next());
-        System.out.println("Indique la fecha de nacimiento del profesor: ");
-        profesores.setFechaNac(sc.next());
-        System.out.println("Indique la antiguedad del profesor: ");
-        profesores.setAntiguedad(sc.nextInt());
-
-        profesores.setMatriculas(listaMatriculas);
-        guardar(profesores);
+    private static void borrarAlumnos() throws Exception {
+        bd.abrir();
+        System.out.println("Introduzca el id del alumno a borrar");
+        Alumnos alumnos = bd.leerAlumnos(sc.nextInt());
+        bd.cerrar();
+        bd.borrarAlumno(alumnos);
     }
 
-    private static void insertarMatricula(){
-
-        System.out.println("Indique el id de matricula: ");
-        matricula.setIdMatricula(sc.nextInt());
-        System.out.println("Indique la asignatura del alumno: ");
-        matricula.setAsignatura(sc.next());
-        System.out.println("Indique el curso del alumno");
-        matricula.setCurso(sc.nextInt());
-
-        listaMatriculas.add(new Matricula(matricula.getIdMatricula(), matricula.getAsignatura(), matricula.getCurso(), alumnos, profesores));
+    private static void borrarProfesores() throws Exception {
+        bd.abrir();
+        System.out.println("Introduzca el id del profesor a borrar");
+        Profesores profesores = bd.leerProfesores(sc.nextInt());
+        bd.cerrar();
+        bd.borrarProfesor(profesores);
 
     }
 
-
-    private static void buscar() throws Exception{
-        int opc;
-        System.out.println("""
-                Indique que desea buscar:
-                [1] ALumno
-                [2] Profesor
-                """);
-        opc = sc.nextInt();
-
-        /*
-        switch (opc){
-            case 1:
-                System.out.println("Indique el id del alumno que desea buscar: ");
-                alumnos=new Alumnos();
-                alumnos = entity.find(Alumnos.class, sc.nextInt());
-                if (alumnos != null){
-                    System.out.println(alumnos);
-                    System.out.println();
-                }else {
-                    System.out.println("Alumno no encontrado");
-                }
-            case 2:
-                System.out.println("Indique el id del profesor que desea buscar: ");
-                profesores=new Profesores();
-                profesores = entity.find(Profesores.class, sc.nextInt());
-                if (profesores != null){
-                    System.out.println(profesores);
-                    System.out.println();
-                }else {
-                    System.out.println("Profesor no encontrado");
-                }
-
-        }*/
-
+    private static void borrarMatricula() throws Exception {
+        bd.abrir();
+        System.out.println("Introduzca el id de la matricula a borrar");
+        Matricula matricula = bd.leerMatriculas(sc.nextInt());
+        bd.cerrar();
+        bd.borrarMatricula(matricula);
     }
 
 
 }
+
+
+

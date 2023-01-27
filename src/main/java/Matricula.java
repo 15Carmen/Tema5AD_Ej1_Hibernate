@@ -3,6 +3,7 @@ import java.io.Serializable;
 
 @Entity
 @Table(name = "Matricula")
+@NamedQuery(name = "listaMatriculas", query = "from Matricula")
 public class Matricula implements Serializable {
 
     @Id

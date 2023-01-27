@@ -6,6 +6,8 @@ import java.util.List;
 
 @Entity
 @Table (name="Alumnos")
+@NamedQuery(name = "listaALumnado", query = "from Alumnos p")
+
 public class Alumnos implements Serializable {
 
     @Id

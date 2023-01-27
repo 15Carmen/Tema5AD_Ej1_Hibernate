@@ -4,6 +4,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "Profesores")
+@NamedQuery(name = "listaDocente", query = "from Profesores")
 public class Profesores implements Serializable {
 
     @Id
